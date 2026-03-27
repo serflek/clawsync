@@ -1,0 +1,21 @@
+mode: personal  # personal | team | fleet
+
+source:
+  type: rsync   # rsync | watch | git
+  path: ~/.claude/projects/
+
+target:
+  claude_md: ./CLAUDE.md
+  # For team mode (future):
+  # jiffycontext:
+  #   host: localhost
+  #   port: 8080
+
+sync:
+  interval_minutes: 5
+  max_sessions_per_run: 50
+
+extraction:
+  min_confidence: 0.6
+  max_learnings: 100
+  prune_after_days: 30
