@@ -80,8 +80,9 @@ export function optimizeClaudeMd(
   }
 
   // Atomic write: temp file → backup → rename
+  // Use pid + random suffix to avoid collisions in concurrent sync writes
   mkdirSync(dirname(absPath), { recursive: true });
-  const tmpPath = absPath + ".clawsync-tmp";
+  const tmpPath = absPath + `.clawsync-tmp.${process.pid}.${Math.random().toString(36).slice(2)}`;
   writeFileSync(tmpPath, newContent, "utf-8");
 
   if (existsSync(absPath)) {

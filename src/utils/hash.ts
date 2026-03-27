@@ -5,9 +5,9 @@ export function sha256(content: string): string {
   return createHash("sha256").update(content, "utf-8").digest("hex");
 }
 
-/** Short content hash for learning dedup (first 16 chars of sha256) */
+/** Short content hash for learning dedup (first 32 chars of sha256) */
 export function contentHash(text: string): string {
-  return sha256(text.toLowerCase().trim()).slice(0, 16);
+  return sha256(text.toLowerCase().trim()).slice(0, 32);
 }
 
 /**

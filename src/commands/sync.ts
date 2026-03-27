@@ -146,13 +146,18 @@ function loadConfig(configPath?: string): Config {
   for (const p of paths) {
     const resolved = resolve(p.replace(/^~/, process.env.HOME || "~"));
     if (existsSync(resolved)) {
+      const raw = readFileSync(resolved, "utf-8");
+      let parsedYaml: unknown;
       try {
-        const raw = readFileSync(resolved, "utf-8");
-        const parsed = parseYaml(raw);
-        return ConfigSchema.parse(parsed);
-      } catch {
-        // Invalid config, continue to next
+        parsedYaml = parseYaml(raw);
+      } catch (yamlErr) {
+        throw new Error(`Invalid YAML in config file ${resolved}: ${(yamlErr as Error).message}`);
       }
+      const result = ConfigSchema.safeParse(parsedYaml);
+      if (!result.success) {
+        throw new Error(`Invalid config in ${resolved}: ${result.error.message}`);
+      }
+      return result.data;
     }
   }
 
@@ -211,7 +216,11 @@ function walkDir(dir: string, callback: (path: string) => void): void {
         callback(fullPath);
       }
     }
-  } catch {
-    // Permission denied or other fs error — skip
+  } catch (err) {
+    const fsErr = err as NodeJS.ErrnoException;
+    // Only silently skip ENOENT (directory removed mid-walk) and EACCES (permission denied)
+    if (fsErr.code !== "ENOENT" && fsErr.code !== "EACCES") {
+      throw err;
+    }
   }
 }

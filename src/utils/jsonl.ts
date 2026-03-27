@@ -9,7 +9,11 @@ import type { SessionEntry } from "../core/types.js";
  * - Large files (streamed, not loaded into memory)
  */
 export async function* readJsonl(filePath: string): AsyncGenerator<SessionEntry> {
+  // Let non-ENOENT errors (permission denied, I/O error, etc.) propagate to caller
   const stream = createReadStream(filePath, { encoding: "utf-8" });
+  stream.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code !== "ENOENT") throw err;
+  });
   const rl = createInterface({ input: stream, crlfDelay: Infinity });
 
   let lineNum = 0;
